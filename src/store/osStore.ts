@@ -4,6 +4,7 @@ export type Criticidade = 'Baixa' | 'Media' | 'Alta' | 'Critica'
 
 export interface OrdemServico {
     id: string
+    condominio: string
     titulo: string
     descricao: string
     criticidade: Criticidade

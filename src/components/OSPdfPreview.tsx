@@ -51,6 +51,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
             const payload = {
                 id: os.id,
                 titulo: os.titulo,
+                condominio: os.condominio,
                 criticidade: os.criticidade,
                 status: os.status,
                 dataCriacao: os.dataCriacao,
@@ -112,6 +113,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 mb-8 text-sm border border-slate-300 p-4 rounded-md bg-slate-50">
+                            <div className="col-span-2"><span className="font-bold text-slate-500">CONDOMÍNIO / LOCAL:</span> <br /> {os.condominio}</div>
                             <div><span className="font-bold text-slate-500">ID DA OS:</span> <br /> {os.id.toUpperCase()}</div>
                             <div><span className="font-bold text-slate-500">DATA:</span> <br /> {new Date(os.dataCriacao).toLocaleString('pt-BR')}</div>
                             <div><span className="font-bold text-slate-500">CRITICIDADE:</span> <br /> {os.criticidade}</div>

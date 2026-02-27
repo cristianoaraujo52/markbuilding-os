@@ -11,6 +11,7 @@ interface OSFormProps {
 export const OSForm = ({ onSuccess }: OSFormProps) => {
     const addOrdem = useOSStore(state => state.addOrdem)
     const [titulo, setTitulo] = useState('')
+    const [condominio, setCondominio] = useState('')
     const [descricao, setDescricao] = useState('')
     const [criticidade, setCriticidade] = useState<Criticidade>('Media')
 
@@ -30,6 +31,7 @@ export const OSForm = ({ onSuccess }: OSFormProps) => {
 
         addOrdem({
             titulo,
+            condominio,
             descricao,
             criticidade,
             status: 'Pendente',
@@ -51,16 +53,30 @@ export const OSForm = ({ onSuccess }: OSFormProps) => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Título / Serviço</label>
-                    <input
-                        type="text"
-                        required
-                        value={titulo}
-                        onChange={(e) => setTitulo(e.target.value)}
-                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                        placeholder="Ex: Troca de disjuntor"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-300">Condomínio / Prédio</label>
+                        <input
+                            type="text"
+                            required
+                            value={condominio}
+                            onChange={(e) => setCondominio(e.target.value)}
+                            className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                            placeholder="Ex: Condomínio Residencial Marques"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-300">Título / Serviço</label>
+                        <input
+                            type="text"
+                            required
+                            value={titulo}
+                            onChange={(e) => setTitulo(e.target.value)}
+                            className="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                            placeholder="Ex: Troca de disjuntor"
+                        />
+                    </div>
                 </div>
 
                 <div className="space-y-2">

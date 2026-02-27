@@ -16,18 +16,21 @@ function App() {
     if (!isLoaded) {
       addOrdem({
         titulo: 'Manutenção Ar-condicionado Sala 402',
+        condominio: 'Edifício Mark Center',
         descricao: 'Limpeza de filtros e troca de gás refrigente da evaporadora.',
         criticidade: 'Media',
         status: 'Concluida'
       })
       addOrdem({
         titulo: 'Vazamento Infiltração Teto Recepção',
+        condominio: 'Condomínio Águas Claras',
         descricao: 'Identificar vazamento na tubulação do 1º andar afetando o gesso.',
         criticidade: 'Critica',
         status: 'Em Andamento'
       })
       addOrdem({
         titulo: 'Substituição Lâmpadas Garagem',
+        condominio: 'Residencial Boulevard',
         descricao: 'Trocar lâmpadas queimadas nos setores B e C do subsolo.',
         criticidade: 'Baixa',
         status: 'Pendente'

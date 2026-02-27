@@ -55,7 +55,8 @@ export const OSTimeline = () => {
                             <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-4">
                                 <div>
                                     <h4 className="text-lg font-semibold">{os.titulo}</h4>
-                                    <p className="text-slate-400 text-sm mt-1">{os.descricao}</p>
+                                    <p className="text-brand-300 font-medium text-sm mt-1">{os.condominio}</p>
+                                    <p className="text-slate-400 text-sm mt-2">{os.descricao}</p>
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
                                     <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getCriticidadeStyle(os.criticidade)}`}>
