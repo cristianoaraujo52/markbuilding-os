@@ -50,10 +50,8 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
 
             const payload = {
                 id: os.id,
-                titulo: os.titulo,
+                executor: os.executor,
                 condominio: os.condominio,
-                criticidade: os.criticidade,
-                status: os.status,
                 dataCriacao: os.dataCriacao,
                 pdfBase64: pdfBase64
             }
@@ -113,17 +111,10 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 mb-8 text-sm border border-slate-300 p-4 rounded-md bg-slate-50">
-                            <div className="col-span-2"><span className="font-bold text-slate-500">CONDOMÍNIO / LOCAL:</span> <br /> {os.condominio}</div>
+                            <div><span className="font-bold text-slate-500">CONDOMÍNIO / LOCAL:</span> <br /> {os.condominio}</div>
+                            <div><span className="font-bold text-slate-500">NOME DO EXECUTOR:</span> <br /> {os.executor}</div>
                             <div><span className="font-bold text-slate-500">ID DA OS:</span> <br /> {os.id.toUpperCase()}</div>
                             <div><span className="font-bold text-slate-500">DATA:</span> <br /> {new Date(os.dataCriacao).toLocaleString('pt-BR')}</div>
-                            <div><span className="font-bold text-slate-500">CRITICIDADE:</span> <br /> {os.criticidade}</div>
-                            <div><span className="font-bold text-slate-500">STATUS INICIAL:</span> <br /> {os.status}</div>
-                        </div>
-
-                        <div className="mb-8 flex-1">
-                            <h3 className="text-xl font-bold bg-slate-200 px-3 py-1 mb-3">SERVIÇO EXECUTADO</h3>
-                            <p className="text-lg font-bold mb-2">{os.titulo}</p>
-                            <p className="text-slate-700 whitespace-pre-wrap">{os.descricao}</p>
                         </div>
 
                         {/* Pad de Assinatura Simulado (No app real pegaríamos a BASE64 do SignatureCanvas) */}
@@ -132,7 +123,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                                 <div className="h-16 border-b border-slate-400 mb-2 flex items-end justify-center">
                                     <span className="italic text-slate-300">Assinado digitalmente</span>
                                 </div>
-                                <p className="font-bold">ASSINATURA DO TÉCNICO</p>
+                                <p className="font-bold">ASSINATURA DO EXECUTOR</p>
                             </div>
                             <div>
                                 <div className="h-16 border-b border-slate-400 mb-2"></div>

@@ -1,43 +1,11 @@
-import { useState, useEffect } from 'react'
-import { DashboardKPIs } from './components/DashboardKPIs'
-import { OSTimeline } from './components/OSTimeline'
+import { useState } from 'react'
 import { OSForm } from './components/OSForm'
 import { OSPdfPreview } from './components/OSPdfPreview'
 import { useOSStore, type OrdemServico } from './store/osStore'
 
 function App() {
-  const [isGestao, setIsGestao] = useState(true)
-  const [isLoaded, setIsLoaded] = useState(false)
   const [previewOS, setPreviewOS] = useState<OrdemServico | null>(null)
-  const { ordens, addOrdem } = useOSStore()
-
-  // Injetar Mock Data para Demonstração Visual apenas 1 vez
-  useEffect(() => {
-    if (!isLoaded) {
-      addOrdem({
-        titulo: 'Manutenção Ar-condicionado Sala 402',
-        condominio: 'Edifício Mark Center',
-        descricao: 'Limpeza de filtros e troca de gás refrigente da evaporadora.',
-        criticidade: 'Media',
-        status: 'Concluida'
-      })
-      addOrdem({
-        titulo: 'Vazamento Infiltração Teto Recepção',
-        condominio: 'Condomínio Águas Claras',
-        descricao: 'Identificar vazamento na tubulação do 1º andar afetando o gesso.',
-        criticidade: 'Critica',
-        status: 'Em Andamento'
-      })
-      addOrdem({
-        titulo: 'Substituição Lâmpadas Garagem',
-        condominio: 'Residencial Boulevard',
-        descricao: 'Trocar lâmpadas queimadas nos setores B e C do subsolo.',
-        criticidade: 'Baixa',
-        status: 'Pendente'
-      })
-      setIsLoaded(true)
-    }
-  }, [isLoaded, addOrdem])
+  const { ordens } = useOSStore()
 
   const handleOSCreated = () => {
     // Pega a última inserida (no topo do store)
@@ -57,31 +25,13 @@ function App() {
           </div>
           <h1 className="text-xl font-bold tracking-wide">MARK BUILDING</h1>
         </div>
-
-        <button
-          onClick={() => setIsGestao(!isGestao)}
-          className="glass-panel px-4 py-2 text-sm font-medium hover:bg-slate-700/50 transition-colors"
-        >
-          {isGestao ? '⚙️ Modo: Gestão' : '🛠 Modo: Técnico'}
-        </button>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-1 p-6 flex flex-col items-center">
-        {isGestao ? (
-          <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="w-full max-w-5xl mb-2">
-              <h2 className="text-2xl font-bold text-slate-100">Visão Geral Executiva</h2>
-              <p className="text-slate-400">Acompanhamento em tempo real</p>
-            </div>
-            <DashboardKPIs />
-            <OSTimeline />
-          </div>
-        ) : (
-          <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <OSForm onSuccess={handleOSCreated} />
-          </div>
-        )}
+        <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <OSForm onSuccess={handleOSCreated} />
+        </div>
       </main>
 
       {/* Modal / PDF Preview */}
