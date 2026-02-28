@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import { Download, CheckCircle, MessageCircle } from 'lucide-react'
@@ -50,34 +50,34 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
 
         setIsGenerating(true)
 
+        const phone = "5521970370563"
+        const emojiPriority = os.prioridade === 'High' ? '🔴' : os.prioridade === 'Medium' ? '🟡' : '🟢'
+
+        let text = `*MARK BUILDING - ORDEM DE SERVIÇO*\n\n`
+        text += `*ID:* ${os.id.substring(0, 8).toUpperCase()}\n`
+        text += `*Condomínio:* ${os.condominio}\n`
+        text += `*Executor:* ${os.executor}\n`
+        text += `*Prioridade:* ${emojiPriority} ${os.prioridade}\n`
+        text += `*Equipamento:* ${os.equipamento || 'Não informado'}\n`
+        text += `*Data:* ${new Date(os.dataCriacao).toLocaleString('pt-BR')}\n\n`
+        text += `*Descrição Técnica:*\n${os.descricaoTecnica}\n\n`
+        text += `_Gerado via MB OS App_`
+
+        const encodedText = encodeURIComponent(text)
+        const waUrl = `https://wa.me/${phone}?text=${encodedText}`
+
         try {
-            const phone = "5521970370563"
-            const emojiPriority = os.prioridade === 'High' ? '🔴' : os.prioridade === 'Medium' ? '🟡' : '🟢'
-
-            let text = `*MARK BUILDING - ORDEM DE SERVIÇO*\n\n`
-            text += `*ID:* ${os.id.substring(0, 8).toUpperCase()}\n`
-            text += `*Condomínio:* ${os.condominio}\n`
-            text += `*Executor:* ${os.executor}\n`
-            text += `*Prioridade:* ${emojiPriority} ${os.prioridade}\n`
-            text += `*Equipamento:* ${os.equipamento || 'Não informado'}\n`
-            text += `*Data:* ${new Date(os.dataCriacao).toLocaleString('pt-BR')}\n\n`
-            text += `*Descrição Técnica:*\n${os.descricaoTecnica}\n\n`
-            text += `_Gerado via MB OS App_`
-
-            // Geração do PDF
+            // Geração da Imagem (em vez de PDF, pois JPG é 100% suportado no envio pro zap)
             const element = printRef.current
             const canvas = await html2canvas(element, { scale: 1, useCORS: true, logging: false })
-            const imgData = canvas.toDataURL('image/png')
 
-            const pdf = new jsPDF('p', 'mm', 'a4')
-            const pdfWidth = pdf.internal.pageSize.getWidth()
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+            // Extract Blob (JPEG is smallest and widest supported)
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+            const fetchRes = await fetch(dataUrl)
+            const blob = await fetchRes.blob()
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-            const pdfBlob = pdf.output('blob')
-            const fileName = `OS-${os.id.substring(0, 8)}.pdf`
-
-            const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
+            const fileName = `OS-${os.id.substring(0, 8)}.jpg`
+            const file = new File([blob], fileName, { type: 'image/jpeg' })
 
             // Verifica se o navegador suporta Web Share API com arquivos
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -87,16 +87,18 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                     files: [file]
                 })
             } else {
-                // FALLBACK: Se o navegador não suportar compartilhamento nativo de arquivos
-                alert("Seu navegador não suporta compartilhamento direto de arquivos. O PDF será baixado e o WhatsApp aberto.")
-                pdf.save(fileName)
-                const encodedText = encodeURIComponent(text)
-                const url = `https://wa.me/${phone}?text=${encodedText}`
-                window.open(url, '_blank')
+                // FALLBACK MODO 1: Se o navegador for velho (PC), abre WhatsApp Web com o texto imediatamente 
+                window.open(waUrl, '_blank')
+                // Como bônus, baixa a imagem pro cara anexar manualmente
+                const link = document.createElement('a')
+                link.download = fileName
+                link.href = dataUrl
+                link.click()
             }
         } catch (error) {
-            console.error("Erro ao compartilhar", error)
-            alert("Erro ao tentar gerar o documento e compartilhar.")
+            console.error("Erro ao gerar/compartilhar", error)
+            // FALLBACK MODO 2: Se tudo mais falhar (estouro de memória na imagem), pelo menos manda a mensagem de texto pelo zap!
+            window.open(waUrl, '_blank')
         } finally {
             setIsGenerating(false)
         }
@@ -127,7 +129,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                     <div ref={printRef} className="bg-white text-slate-900 p-4 sm:p-8 w-full min-w-[320px] max-w-[210mm] sm:w-[210mm] min-h-[297mm] shadow-md flex flex-col relative shrink-0 mx-auto">
 
                         <div className="absolute top-8 right-8">
-                            <QRCodeSVG value={`https://markbuilding.com/os/${os.id}`} size={80} />
+                            <QRCodeCanvas value={`https://markbuilding.com/os/${os.id}`} size={80} />
                         </div>
 
                         <div className="border-b-4 border-slate-800 pb-4 mb-6">
