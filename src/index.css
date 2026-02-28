@@ -1,38 +1,45 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @theme {
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-900: #1e3a8a;
-  --color-brand-950: #172554;
-  
-  --color-slate-850: #141f32;
-  --color-slate-900: #0f172a;
-  
-  --color-critical: #ef4444;
-  --color-high: #f97316;
-  --color-medium: #eab308;
-  --color-low: #3b82f6;
-  
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --color-primary: #00E5FF;
+  --color-primary-dark: #00B8D4;
+  --color-primary-neon: #007AFF;
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #000000;
+  --color-surface-dark: #121212;
+  --color-surface-darker: #0a0a0a;
+  --color-surface-light: #ffffff;
+  --color-neon-green: #39FF14;
+  --color-neon-amber: #FFBF00;
+  --color-neon-yellow: #fff01f;
+  --color-neon-red: #ff073a;
+  --color-vivid-red: #FF0000;
+  --color-accent-pink: #ff00ff;
+  --color-secondary-text: #a0a0a0;
+  --color-border-high-contrast: #404040;
+
+  --font-display: 'Manrope', sans-serif;
+  --font-sans: 'Manrope', system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 antialiased selection:bg-brand-500/30;
-    font-family: var(--font-sans);
+    @apply bg-background-dark text-white antialiased selection:bg-primary-neon selection:text-white;
+    font-family: var(--font-display);
+    min-height: max(884px, 100dvh);
+    -webkit-font-smoothing: antialiased;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-slate-900/60 backdrop-blur-md border border-slate-700/50 shadow-xl;
+    @apply bg-surface-dark/95 backdrop-blur-md border border-white/10 shadow-[0_4px_6px_-1px_#00000080];
   }
-  
+
   .glass-panel {
-    @apply bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 rounded-2xl shadow-2xl;
+    @apply bg-surface-dark/90 backdrop-blur-lg border border-white/15 rounded-2xl shadow-[0_4px_6px_-1px_#00000080];
   }
 
   /* Scrollbar customizada elegante */
@@ -40,14 +47,25 @@
     width: 6px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-700/50 rounded-full cursor-pointer;
+    @apply bg-border-high-contrast rounded-full cursor-pointer;
   }
+
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-600;
+    @apply bg-secondary-text;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
-

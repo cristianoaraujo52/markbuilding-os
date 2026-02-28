@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import html2canvas from 'html2canvas'
@@ -13,6 +13,14 @@ interface OSPdfPreviewProps {
 
 export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
     const printRef = useRef<HTMLDivElement>(null)
+    const [signatureImg, setSignatureImg] = useState<string | null>(null)
+
+    useEffect(() => {
+        const sig = localStorage.getItem('currentSignature')
+        if (sig) {
+            setSignatureImg(sig)
+        }
+    }, [])
 
     const handleDownloadPdf = async () => {
         if (!printRef.current) return
@@ -81,23 +89,23 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-[100] bg-background-dark/95 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
         >
-            <div className="bg-slate-800 rounded-2xl max-w-2xl w-full border border-slate-700 shadow-2xl overflow-hidden mt-10 md:mt-0">
+            <div className="bg-surface-darker rounded-2xl max-w-2xl w-full border border-white/10 shadow-[0_0_30px_rgba(0,122,255,0.2)] overflow-hidden mt-10 md:mt-0">
 
                 {/* Toolbar Superior */}
-                <div className="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-700">
-                    <div className="flex items-center gap-2">
-                        <CheckCircle className="text-green-400" size={24} />
-                        <span className="font-semibold text-lg">OS Salva com Sucesso!</span>
+                <div className="bg-surface-dark px-6 py-4 flex justify-between items-center border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                        <CheckCircle className="text-neon-green" size={24} />
+                        <span className="font-bold text-lg text-white uppercase tracking-wider">OS Emitida</span>
                     </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white font-medium px-3 py-1 bg-slate-800 rounded-md">
+                    <button onClick={onClose} className="text-secondary-text hover:text-white font-medium px-4 py-1.5 bg-white/5 hover:bg-white/10 rounded-md transition-colors border border-white/10 uppercase text-sm tracking-wide">
                         Fechar
                     </button>
                 </div>
 
                 {/* Visualização da Página A4 (Container com scroll) */}
-                <div className="p-6 overflow-x-auto bg-slate-800/50 flex justify-center">
+                <div className="p-6 overflow-x-auto bg-surface-darker/50 flex justify-center">
                     {/* O REF abaixo aponta para o container branco que simboliza o papel. Tudo aqui dentro vai pro PDF */}
                     <div ref={printRef} className="bg-white text-slate-900 p-8 w-[210mm] min-h-[297mm] shadow-md flex flex-col relative shrink-0">
 
@@ -117,16 +125,20 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                             <div><span className="font-bold text-slate-500">DATA:</span> <br /> {new Date(os.dataCriacao).toLocaleString('pt-BR')}</div>
                         </div>
 
-                        {/* Pad de Assinatura Simulado (No app real pegaríamos a BASE64 do SignatureCanvas) */}
+                        {/* Pad de Assinatura */}
                         <div className="mt-auto pt-8 border-t-2 border-slate-300 grid grid-cols-2 gap-8 text-center text-sm">
                             <div>
-                                <div className="h-16 border-b border-slate-400 mb-2 flex items-end justify-center">
-                                    <span className="italic text-slate-300">Assinado digitalmente</span>
+                                <div className="h-20 border-b border-slate-400 mb-2 flex items-end justify-center pb-1">
+                                    {signatureImg ? (
+                                        <img src={signatureImg} alt="Assinatura" className="max-h-20 object-contain" />
+                                    ) : (
+                                        <span className="italic text-slate-300">Não assinado</span>
+                                    )}
                                 </div>
                                 <p className="font-bold">ASSINATURA DO EXECUTOR</p>
                             </div>
                             <div>
-                                <div className="h-16 border-b border-slate-400 mb-2"></div>
+                                <div className="h-20 border-b border-slate-400 mb-2"></div>
                                 <p className="font-bold">ASSINATURA DO RESPONSÁVEL</p>
                             </div>
                         </div>
@@ -134,20 +146,20 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                 </div>
 
                 {/* Toolbar Inferior - Ações */}
-                <div className="p-4 bg-slate-900 flex justify-end gap-3 flex-wrap">
+                <div className="p-4 bg-surface-dark flex justify-end gap-3 flex-wrap border-t border-white/10">
                     <button
                         onClick={handleDownloadPdf}
-                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-slate-700 hover:bg-slate-600 px-5 py-3 rounded-xl font-medium transition-colors"
+                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-surface-darker border border-secondary-text/30 hover:border-white/50 text-white px-5 py-3 rounded-xl font-bold tracking-widest uppercase transition-colors"
                     >
-                        <Download size={20} /> Baixar PDF
+                        <Download size={20} /> PDF
                     </button>
 
                     <button
                         disabled={isUploading}
                         onClick={handleUploadDrive}
-                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-5 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-gradient-to-r from-primary-neon to-primary-dark text-white px-5 py-3 rounded-xl font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(0,122,255,0.4)] hover:shadow-[0_0_25px_rgba(0,122,255,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <CloudUpload size={20} /> {isUploading ? 'Sincronizando...' : 'Sincronizar Drive'}
+                        <CloudUpload size={20} /> {isUploading ? 'Sincronizando...' : 'Google Drive'}
                     </button>
                 </div>
 
