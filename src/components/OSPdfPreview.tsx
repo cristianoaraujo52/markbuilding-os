@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import { Download, CheckCircle, CloudUpload } from 'lucide-react'
+import { Download, CheckCircle, MessageCircle } from 'lucide-react'
 import { type OrdemServico } from '../store/osStore'
 
 interface OSPdfPreviewProps {
@@ -42,56 +42,25 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
         }
     }
 
-    const [isUploading, setIsUploading] = useState(false)
+    // Envio para o WhatsApp
+    const handleShareWhatsApp = () => {
+        const phone = "5521970370563"
+        const emojiPriority = os.prioridade === 'High' ? '🔴' : os.prioridade === 'Medium' ? '🟡' : '🟢'
 
-    // Envio Real via Webhook Google Drive
-    const handleUploadDrive = async () => {
-        if (!printRef.current) return
+        let text = `*MARK BUILDING - ORDEM DE SERVIÇO*\n\n`
+        text += `*ID:* ${os.id.substring(0, 8).toUpperCase()}\n`
+        text += `*Condomínio:* ${os.condominio}\n`
+        text += `*Executor:* ${os.executor}\n`
+        text += `*Prioridade:* ${emojiPriority} ${os.prioridade}\n`
+        text += `*Equipamento:* ${os.equipamento || 'Não informado'}\n`
+        text += `*Data:* ${new Date(os.dataCriacao).toLocaleString('pt-BR')}\n\n`
+        text += `*Descrição Técnica:*\n${os.descricaoTecnica}\n\n`
+        text += `_Gerado via MB OS App_`
 
-        setIsUploading(true)
-        try {
-            const element = printRef.current
-            const canvas = await html2canvas(element, { scale: 1, useCORS: true, logging: false })
-            const imgData = canvas.toDataURL('image/png')
+        const encodedText = encodeURIComponent(text)
+        const url = `https://wa.me/${phone}?text=${encodedText}`
 
-            const pdf = new jsPDF('p', 'mm', 'a4')
-            const pdfWidth = pdf.internal.pageSize.getWidth()
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-            const pdfBase64 = pdf.output('datauristring')
-
-            const payload = {
-                id: os.id,
-                executor: os.executor,
-                condominio: os.condominio,
-                prioridade: os.prioridade,
-                equipamento: os.equipamento,
-                descricaoTecnica: os.descricaoTecnica,
-                dataCriacao: os.dataCriacao,
-                pdfBase64: pdfBase64,
-                fotos: os.fotos
-            }
-
-            const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwjhKc3a6MfWbD5UA2Df2iW1DVgjXONKtUyFb1hWA1RfL3sWpu0IuBez-ZMtqBUBAGq/exec"
-
-            await fetch(WEBHOOK_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "text/plain",
-                },
-                body: JSON.stringify(payload)
-            })
-
-            alert("🚀 OS enviada e sincronizada no Drive com sucesso!")
-            onClose()
-        } catch (error) {
-            console.error("Erro no upload", error)
-            alert("Erro ao tentar sincronizar no Google Drive.")
-        } finally {
-            setIsUploading(false)
-        }
+        window.open(url, '_blank')
     }
 
     return (
@@ -116,7 +85,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                 {/* Visualização da Página A4 (Container com scroll) */}
                 <div className="p-6 overflow-x-auto bg-surface-darker/50 flex justify-center">
                     {/* O REF abaixo aponta para o container branco que simboliza o papel. Tudo aqui dentro vai pro PDF */}
-                    <div ref={printRef} className="bg-white text-slate-900 p-8 w-[210mm] min-h-[297mm] shadow-md flex flex-col relative shrink-0">
+                    <div ref={printRef} className="bg-white text-slate-900 p-4 sm:p-8 w-full min-w-[320px] max-w-[210mm] sm:w-[210mm] min-h-[297mm] shadow-md flex flex-col relative shrink-0 mx-auto">
 
                         <div className="absolute top-8 right-8">
                             <QRCodeSVG value={`https://markbuilding.com/os/${os.id}`} size={80} />
@@ -127,7 +96,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                             <p className="text-lg font-semibold text-slate-500 mt-1">ORDEM DE SERVIÇO TÉCNICA</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-6 text-sm border border-slate-300 p-4 rounded-md bg-slate-50">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm border border-slate-300 p-4 rounded-md bg-slate-50">
                             <div><span className="font-bold text-slate-500">CONDOMÍNIO / LOCAL:</span> <br /> {os.condominio}</div>
                             <div><span className="font-bold text-slate-500">NOME DO EXECUTOR:</span> <br /> {os.executor}</div>
                             <div><span className="font-bold text-slate-500">ID DA OS:</span> <br /> {os.id.toUpperCase()}</div>
@@ -194,11 +163,10 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                     </button>
 
                     <button
-                        disabled={isUploading}
-                        onClick={handleUploadDrive}
-                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-gradient-to-r from-primary-neon to-primary-dark text-white px-5 py-3 rounded-xl font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(0,122,255,0.4)] hover:shadow-[0_0_25px_rgba(0,122,255,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleShareWhatsApp}
+                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-[#25D366] hover:bg-[#1ebd5b] text-white px-5 py-3 rounded-xl font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(37,211,102,0.4)] hover:shadow-[0_0_25px_rgba(37,211,102,0.6)]"
                     >
-                        <CloudUpload size={20} /> {isUploading ? 'Sincronizando...' : 'Google Drive'}
+                        <MessageCircle size={20} /> WhatsApp
                     </button>
                 </div>
 
