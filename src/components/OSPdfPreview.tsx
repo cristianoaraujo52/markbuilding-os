@@ -42,25 +42,64 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
         }
     }
 
-    // Envio para o WhatsApp
-    const handleShareWhatsApp = () => {
-        const phone = "5521970370563"
-        const emojiPriority = os.prioridade === 'High' ? '🔴' : os.prioridade === 'Medium' ? '🟡' : '🟢'
+    const [isGenerating, setIsGenerating] = useState(false)
 
-        let text = `*MARK BUILDING - ORDEM DE SERVIÇO*\n\n`
-        text += `*ID:* ${os.id.substring(0, 8).toUpperCase()}\n`
-        text += `*Condomínio:* ${os.condominio}\n`
-        text += `*Executor:* ${os.executor}\n`
-        text += `*Prioridade:* ${emojiPriority} ${os.prioridade}\n`
-        text += `*Equipamento:* ${os.equipamento || 'Não informado'}\n`
-        text += `*Data:* ${new Date(os.dataCriacao).toLocaleString('pt-BR')}\n\n`
-        text += `*Descrição Técnica:*\n${os.descricaoTecnica}\n\n`
-        text += `_Gerado via MB OS App_`
+    // Envio para o WhatsApp com Arquivo Nativo (Web Share API)
+    const handleShareWhatsApp = async () => {
+        if (!printRef.current) return
 
-        const encodedText = encodeURIComponent(text)
-        const url = `https://wa.me/${phone}?text=${encodedText}`
+        setIsGenerating(true)
 
-        window.open(url, '_blank')
+        try {
+            const phone = "5521970370563"
+            const emojiPriority = os.prioridade === 'High' ? '🔴' : os.prioridade === 'Medium' ? '🟡' : '🟢'
+
+            let text = `*MARK BUILDING - ORDEM DE SERVIÇO*\n\n`
+            text += `*ID:* ${os.id.substring(0, 8).toUpperCase()}\n`
+            text += `*Condomínio:* ${os.condominio}\n`
+            text += `*Executor:* ${os.executor}\n`
+            text += `*Prioridade:* ${emojiPriority} ${os.prioridade}\n`
+            text += `*Equipamento:* ${os.equipamento || 'Não informado'}\n`
+            text += `*Data:* ${new Date(os.dataCriacao).toLocaleString('pt-BR')}\n\n`
+            text += `*Descrição Técnica:*\n${os.descricaoTecnica}\n\n`
+            text += `_Gerado via MB OS App_`
+
+            // Geração do PDF
+            const element = printRef.current
+            const canvas = await html2canvas(element, { scale: 1, useCORS: true, logging: false })
+            const imgData = canvas.toDataURL('image/png')
+
+            const pdf = new jsPDF('p', 'mm', 'a4')
+            const pdfWidth = pdf.internal.pageSize.getWidth()
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+            const pdfBlob = pdf.output('blob')
+            const fileName = `OS-${os.id.substring(0, 8)}.pdf`
+
+            const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
+
+            // Verifica se o navegador suporta Web Share API com arquivos
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: 'Ordem de Serviço - Mark Building',
+                    text: text,
+                    files: [file]
+                })
+            } else {
+                // FALLBACK: Se o navegador não suportar compartilhamento nativo de arquivos
+                alert("Seu navegador não suporta compartilhamento direto de arquivos. O PDF será baixado e o WhatsApp aberto.")
+                pdf.save(fileName)
+                const encodedText = encodeURIComponent(text)
+                const url = `https://wa.me/${phone}?text=${encodedText}`
+                window.open(url, '_blank')
+            }
+        } catch (error) {
+            console.error("Erro ao compartilhar", error)
+            alert("Erro ao tentar gerar o documento e compartilhar.")
+        } finally {
+            setIsGenerating(false)
+        }
     }
 
     return (
@@ -164,9 +203,10 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
 
                     <button
                         onClick={handleShareWhatsApp}
-                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-[#25D366] hover:bg-[#1ebd5b] text-white px-5 py-3 rounded-xl font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(37,211,102,0.4)] hover:shadow-[0_0_25px_rgba(37,211,102,0.6)]"
+                        disabled={isGenerating}
+                        className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-[#25D366] hover:bg-[#1ebd5b] text-white px-5 py-3 rounded-xl font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(37,211,102,0.4)] hover:shadow-[0_0_25px_rgba(37,211,102,0.6)] disabled:opacity-50 disabled:cursor-wait"
                     >
-                        <MessageCircle size={20} /> WhatsApp
+                        <MessageCircle size={20} /> {isGenerating ? 'Gerando...' : 'WhatsApp'}
                     </button>
                 </div>
 
