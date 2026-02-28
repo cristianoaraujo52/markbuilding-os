@@ -4,6 +4,10 @@ export interface OrdemServico {
     id: string
     executor: string
     condominio: string
+    prioridade: 'Low' | 'Medium' | 'High'
+    equipamento?: string
+    descricaoTecnica: string
+    fotos: string[]
     status: 'Concluida'
     dataCriacao: string
 }

@@ -60,8 +60,12 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                 id: os.id,
                 executor: os.executor,
                 condominio: os.condominio,
+                prioridade: os.prioridade,
+                equipamento: os.equipamento,
+                descricaoTecnica: os.descricaoTecnica,
                 dataCriacao: os.dataCriacao,
-                pdfBase64: pdfBase64
+                pdfBase64: pdfBase64,
+                fotos: os.fotos
             }
 
             const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwjhKc3a6MfWbD5UA2Df2iW1DVgjXONKtUyFb1hWA1RfL3sWpu0IuBez-ZMtqBUBAGq/exec"
@@ -118,12 +122,42 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
                             <p className="text-lg font-semibold text-slate-500 mt-1">ORDEM DE SERVIÇO TÉCNICA</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-8 text-sm border border-slate-300 p-4 rounded-md bg-slate-50">
+                        <div className="grid grid-cols-2 gap-4 mb-6 text-sm border border-slate-300 p-4 rounded-md bg-slate-50">
                             <div><span className="font-bold text-slate-500">CONDOMÍNIO / LOCAL:</span> <br /> {os.condominio}</div>
                             <div><span className="font-bold text-slate-500">NOME DO EXECUTOR:</span> <br /> {os.executor}</div>
                             <div><span className="font-bold text-slate-500">ID DA OS:</span> <br /> {os.id.toUpperCase()}</div>
                             <div><span className="font-bold text-slate-500">DATA:</span> <br /> {new Date(os.dataCriacao).toLocaleString('pt-BR')}</div>
+                            <div>
+                                <span className="font-bold text-slate-500">PRIORIDADE:</span> <br />
+                                <span className={`inline-block px-2 py-0.5 mt-1 rounded text-xs font-bold uppercase ${os.prioridade === 'High' ? 'bg-red-100 text-red-700' :
+                                    os.prioridade === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-green-100 text-green-700'
+                                    }`}>
+                                    {os.prioridade}
+                                </span>
+                            </div>
+                            <div><span className="font-bold text-slate-500">EQUIPAMENTO/ATIVO:</span> <br /> {os.equipamento || 'N/A'}</div>
                         </div>
+
+                        <div className="mb-8 text-sm">
+                            <h3 className="font-bold text-slate-500 border-b-2 border-slate-300 pb-1 mb-2">DESCRIÇÃO TÉCNICA</h3>
+                            <div className="min-h-[100px] border border-slate-300 p-4 rounded-md bg-white whitespace-pre-wrap">
+                                {os.descricaoTecnica}
+                            </div>
+                        </div>
+
+                        {os.fotos && os.fotos.length > 0 && (
+                            <div className="mb-8">
+                                <h3 className="font-bold text-slate-500 border-b-2 border-slate-300 pb-1 mb-4 text-sm">REGISTRO FOTOGRÁFICO</h3>
+                                <div className="grid grid-cols-3 gap-4">
+                                    {os.fotos.map((foto, index) => (
+                                        <div key={index} className="aspect-square bg-slate-100 rounded border border-slate-300 overflow-hidden flex items-center justify-center">
+                                            <img src={foto} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Pad de Assinatura */}
                         <div className="mt-auto pt-8 border-t-2 border-slate-300 grid grid-cols-2 gap-8 text-center text-sm">

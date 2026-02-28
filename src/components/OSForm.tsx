@@ -1,22 +1,47 @@
 import { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import SignatureCanvas from 'react-signature-canvas'
-import { Save, Eraser, Zap } from 'lucide-react'
+import { Save, Eraser, Zap, Camera, Trash2, ArrowUp, ArrowDown, Minus, QrCode } from 'lucide-react'
 import { useOSStore } from '../store/osStore'
 
 interface OSFormProps {
     onSuccess: () => void
 }
 
+type Priority = 'Low' | 'Medium' | 'High';
+
 export const OSForm = ({ onSuccess }: OSFormProps) => {
     const addOrdem = useOSStore(state => state.addOrdem)
     const [executor, setExecutor] = useState('')
     const [condominio, setCondominio] = useState('')
+    const [prioridade, setPrioridade] = useState<Priority>('Medium')
+    const [equipamento, setEquipamento] = useState('')
+    const [descricaoTecnica, setDescricaoTecnica] = useState('')
+    const [fotos, setFotos] = useState<string[]>([])
 
     const padRef = useRef<SignatureCanvas>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const handleClearPad = () => {
         padRef.current?.clear()
+    }
+
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files
+        if (!files) return
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                const base64String = reader.result as string
+                setFotos(prev => [...prev, base64String])
+            }
+            reader.readAsDataURL(file)
+        })
+    }
+
+    const removePhoto = (index: number) => {
+        setFotos(prev => prev.filter((_, i) => i !== index))
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -27,14 +52,15 @@ export const OSForm = ({ onSuccess }: OSFormProps) => {
             return
         }
 
-        // Ideally signature should be saved too, but we will store what we have in the state.
         addOrdem({
             executor,
             condominio,
+            prioridade,
+            equipamento,
+            descricaoTecnica,
+            fotos
         })
 
-        // NOTE: we will need a way to pass the signature data to the PDF component.
-        // For now, we are completing the form. We might store it in localStorage or pass through a callback.
         if (padRef.current) {
             const sigData = padRef.current.getTrimmedCanvas().toDataURL('image/png')
             localStorage.setItem('currentSignature', sigData)
@@ -65,39 +91,151 @@ export const OSForm = ({ onSuccess }: OSFormProps) => {
 
                 <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                     <div className="space-y-6">
+
+                        {/* Priority Selection */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-bold text-secondary-text uppercase tracking-widest">
+                                Nível de Prioridade
+                            </label>
+                            <div className="flex gap-3 overflow-x-auto no-scrollbar scroll-smooth pb-2">
+                                <button type="button" onClick={() => setPrioridade('Low')} className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 transition-all shadow-sm ${prioridade === 'Low' ? 'bg-surface-dark border border-neon-green/50 ring-2 ring-transparent shadow-[0_0_10px_rgba(57,255,20,0.3)]' : 'bg-surface-dark/50 border border-transparent'}`}>
+                                    <ArrowDown size={18} className={prioridade === 'Low' ? 'text-neon-green drop-shadow-[0_0_2px_rgba(57,255,20,0.8)]' : 'text-gray-500'} />
+                                    <p className={`text-sm font-bold tracking-wide ${prioridade === 'Low' ? 'text-neon-green' : 'text-gray-500'}`}>Baixa</p>
+                                </button>
+                                <button type="button" onClick={() => setPrioridade('Medium')} className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 transition-all shadow-sm ${prioridade === 'Medium' ? 'bg-surface-dark border border-neon-yellow/50 ring-2 ring-transparent shadow-[0_0_10px_rgba(255,240,31,0.3)]' : 'bg-surface-dark/50 border border-transparent'}`}>
+                                    <Minus size={18} className={prioridade === 'Medium' ? 'text-neon-yellow drop-shadow-[0_0_2px_rgba(255,240,31,0.8)]' : 'text-gray-500'} />
+                                    <p className={`text-sm font-bold tracking-wide ${prioridade === 'Medium' ? 'text-neon-yellow' : 'text-gray-500'}`}>Média</p>
+                                </button>
+                                <button type="button" onClick={() => setPrioridade('High')} className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 transition-all shadow-[0_0_15px_rgba(255,7,58,0.3)] ${prioridade === 'High' ? 'bg-neon-red/10 border border-neon-red' : 'bg-surface-dark/50 border border-transparent shadow-none'}`}>
+                                    <ArrowUp size={18} className={prioridade === 'High' ? 'text-neon-red drop-shadow-[0_0_2px_rgba(255,7,58,0.8)]' : 'text-gray-500'} />
+                                    <p className={`text-sm font-black tracking-wide ${prioridade === 'High' ? 'text-neon-red' : 'text-gray-500'}`}>Alta</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Basic Info */}
+                        <div className="space-y-4">
+                            <div className="space-y-2 group/input">
+                                <label className="text-xs font-bold text-secondary-text uppercase tracking-widest group-focus-within/input:text-primary-neon transition-colors">
+                                    Executor
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={executor}
+                                    onChange={(e) => setExecutor(e.target.value)}
+                                    className="w-full bg-surface-darker/80 border border-white/10 rounded-xl p-4 text-white placeholder-slate-600 focus:border-primary-neon focus:ring-1 focus:ring-primary-neon transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                    placeholder="Nome do Executor..."
+                                />
+                            </div>
+
+                            <div className="space-y-2 group/input">
+                                <label className="text-xs font-bold text-secondary-text uppercase tracking-widest group-focus-within/input:text-accent-pink transition-colors">
+                                    Condomínio
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={condominio}
+                                    onChange={(e) => setCondominio(e.target.value)}
+                                    className="w-full bg-surface-darker/80 border border-white/10 rounded-xl p-4 text-white placeholder-slate-600 focus:border-accent-pink focus:ring-1 focus:ring-accent-pink transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                    placeholder="Nome do Condomínio..."
+                                />
+                            </div>
+                        </div>
+
+                        {/* Asset Identity */}
+                        <div className="relative overflow-hidden rounded-xl bg-surface-dark border border-white/10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4 group">
+                            <div className="absolute top-0 right-0 p-2 opacity-10 pointer-events-none hidden sm:block">
+                                <QrCode size={60} className="text-white" />
+                            </div>
+                            <div className="flex items-center gap-4 w-full z-10 flex-1">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/5 text-white border border-white/10">
+                                    <QrCode size={24} />
+                                </div>
+                                <div className="flex flex-col flex-1 min-w-0">
+                                    <h3 className="text-sm font-extrabold text-white tracking-tight truncate">Equipamento / Ativo</h3>
+                                    <input
+                                        type="text"
+                                        value={equipamento}
+                                        onChange={(e) => setEquipamento(e.target.value)}
+                                        placeholder="Ex: AR-COND-12"
+                                        className="bg-transparent border-none text-sm text-neon-green placeholder-gray-500 focus:ring-0 p-0 mt-1 outline-none font-mono"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Technical Description */}
                         <div className="space-y-2 group/input">
                             <label className="text-xs font-bold text-secondary-text uppercase tracking-widest group-focus-within/input:text-primary-neon transition-colors">
-                                Executor
+                                Descrição Técnica
                             </label>
-                            <input
-                                type="text"
+                            <textarea
                                 required
-                                value={executor}
-                                onChange={(e) => setExecutor(e.target.value)}
-                                className="w-full bg-surface-darker/80 border border-white/10 rounded-xl p-4 text-white placeholder-slate-600 focus:border-primary-neon focus:ring-1 focus:ring-primary-neon transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
-                                placeholder="Nome do Executor..."
+                                value={descricaoTecnica}
+                                onChange={(e) => setDescricaoTecnica(e.target.value)}
+                                className="w-full resize-none bg-surface-darker/80 border border-white/10 rounded-xl p-4 text-white placeholder-slate-600 focus:border-primary-neon focus:ring-1 focus:ring-primary-neon min-h-[120px] transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                placeholder="Descreva os serviços realizados, peças trocadas..."
                             />
                         </div>
 
-                        <div className="space-y-2 group/input">
-                            <label className="text-xs font-bold text-secondary-text uppercase tracking-widest group-focus-within/input:text-accent-pink transition-colors">
-                                Condomínio
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={condominio}
-                                onChange={(e) => setCondominio(e.target.value)}
-                                className="w-full bg-surface-darker/80 border border-white/10 rounded-xl p-4 text-white placeholder-slate-600 focus:border-accent-pink focus:ring-1 focus:ring-accent-pink transition-all outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
-                                placeholder="Nome do Condomínio..."
-                            />
+                        {/* Photos Upload */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-secondary-text uppercase tracking-widest">
+                                    Fotos do Serviço
+                                </label>
+                                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded font-mono">{fotos.length}</span>
+                            </div>
+
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                <AnimatePresence>
+                                    {fotos.map((photo, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            className="relative aspect-square rounded-xl border border-white/20 overflow-hidden group/photo"
+                                        >
+                                            <img src={photo} alt={`Uploaded ${index + 1}`} className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => removePhoto(index)}
+                                                className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 className="text-neon-red" size={24} />
+                                            </button>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="aspect-square flex flex-col items-center justify-center gap-2 rounded-xl bg-surface-dark border-2 border-dashed border-white/20 hover:border-primary-neon/50 hover:bg-white/5 transition-all text-gray-500 hover:text-primary-neon active:scale-95"
+                                >
+                                    <Camera size={28} />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Adicionar</span>
+                                </button>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    className="hidden"
+                                    ref={fileInputRef}
+                                    onChange={handlePhotoUpload}
+                                />
+                            </div>
                         </div>
+
                     </div>
 
-                    <div className="space-y-3 pt-4">
+                    <div className="space-y-3 pt-4 border-t border-white/10 mt-6 pb-2">
                         <div className="flex justify-between items-center">
                             <label className="text-xs font-bold text-secondary-text uppercase tracking-widest">
-                                Assinatura
+                                Assinatura do Executor
                             </label>
                             <button
                                 type="button"
