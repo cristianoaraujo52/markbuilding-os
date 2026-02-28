@@ -25,16 +25,21 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
     const handleDownloadPdf = async () => {
         if (!printRef.current) return
 
-        const element = printRef.current
-        const canvas = await html2canvas(element, { scale: 2 })
-        const data = canvas.toDataURL('image/png')
+        try {
+            const element = printRef.current
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+            const data = canvas.toDataURL('image/png')
 
-        const pdf = new jsPDF('p', 'mm', 'a4')
-        const pdfWidth = pdf.internal.pageSize.getWidth()
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+            const pdf = new jsPDF('p', 'mm', 'a4')
+            const pdfWidth = pdf.internal.pageSize.getWidth()
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width
 
-        pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight)
-        pdf.save(`OS-${os.id.substring(0, 8)}.pdf`)
+            pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight)
+            pdf.save(`OS-${os.id.substring(0, 8)}.pdf`)
+        } catch (error) {
+            console.error("Erro ao gerar PDF:", error)
+            alert("Erro ao gerar PDF local: O documento pode estar muito pesado para a memória do celular. Tente enviar fotos com menor resolução.")
+        }
     }
 
     const [isUploading, setIsUploading] = useState(false)
@@ -46,7 +51,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
         setIsUploading(true)
         try {
             const element = printRef.current
-            const canvas = await html2canvas(element, { scale: 2 })
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true })
             const imgData = canvas.toDataURL('image/png')
 
             const pdf = new jsPDF('p', 'mm', 'a4')
