@@ -27,7 +27,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
 
         try {
             const element = printRef.current
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+            const canvas = await html2canvas(element, { scale: 1, useCORS: true, logging: false })
             const data = canvas.toDataURL('image/png')
 
             const pdf = new jsPDF('p', 'mm', 'a4')
@@ -51,7 +51,7 @@ export const OSPdfPreview = ({ os, onClose }: OSPdfPreviewProps) => {
         setIsUploading(true)
         try {
             const element = printRef.current
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+            const canvas = await html2canvas(element, { scale: 1, useCORS: true, logging: false })
             const imgData = canvas.toDataURL('image/png')
 
             const pdf = new jsPDF('p', 'mm', 'a4')

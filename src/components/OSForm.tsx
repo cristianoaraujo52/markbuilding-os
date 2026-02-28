@@ -36,8 +36,8 @@ export const OSForm = ({ onSuccess }: OSFormProps) => {
                 const img = new Image()
                 img.onload = () => {
                     const canvas = document.createElement('canvas')
-                    const MAX_WIDTH = 800
-                    const MAX_HEIGHT = 800
+                    const MAX_WIDTH = 400
+                    const MAX_HEIGHT = 400
                     let width = img.width
                     let height = img.height
 
@@ -58,8 +58,8 @@ export const OSForm = ({ onSuccess }: OSFormProps) => {
                     const ctx = canvas.getContext('2d')
                     ctx?.drawImage(img, 0, 0, width, height)
 
-                    // Compress to JPEG with 0.7 quality
-                    const base64String = canvas.toDataURL('image/jpeg', 0.7)
+                    // Compress to PNG for compatibility (Note: PNG compression ignores quality parameter)
+                    const base64String = canvas.toDataURL('image/png')
                     setFotos(prev => [...prev, base64String])
                 }
                 img.src = reader.result as string
